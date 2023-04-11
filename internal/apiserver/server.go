@@ -1,22 +1,41 @@
 package apiserver
 
-import "github.com/gin-gonic/gin"
-import grpcapiserver "internal/pkg/server"
+import (
+	grpcapiserver "MyIAM/internal/pkg/server"
+	httpapiserver "MyIAM/internal/pkg/server"
+	"MyIAM/internal/pkg/shutdown"
+	"log"
+)
 
 type apiServer struct {
-	g             *gin.Engine
+	httpAPIServer *httpapiserver.HttpAPIServer
 	grpcAPIServer *grpcapiserver.GrpcAPIServer
+	gs            *shutdown.GracefulShutdown
 }
 
-func (as *apiServer) PrepareRun() {
-	initRouter(as.g)
+func (s *apiServer) PrepareRun() preparedApiServer {
+	initRouter(s.httpAPIServer.Engine)
+
+	return preparedApiServer{s}
+}
+
+func createAPIServer() (*apiServer, error) {
+	server := &apiServer{}
+	return server, nil
 }
 
 type preparedApiServer struct {
 	*apiServer
 }
 
-func (pas *preparedApiServer) Run() {
-	go pas.grpcAPIServer.Run()
-	err := g.
+func (ps preparedApiServer) Run() error {
+	// start grpc api server
+	go ps.grpcAPIServer.Run()
+	//start shutdown server
+	err := ps.gs.Start()
+	if err != nil {
+		log.Fatal()
+	}
+	// start gin http api server
+	return ps.httpAPIServer.Run()
 }

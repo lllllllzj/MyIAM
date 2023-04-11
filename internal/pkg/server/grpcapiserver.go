@@ -11,13 +11,13 @@ type GrpcAPIServer struct {
 	address string
 }
 
-func (gas *GrpcAPIServer) Run() {
-	listen, err := net.Listen("tcp", gas.address)
+func (gs *GrpcAPIServer) Run() {
+	listen, err := net.Listen("tcp", gs.address)
 	if err != nil {
-		log.Fatal("failed to listen address: %s, err: %s", gas.address, err.Error())
+		log.Fatal("failed to listen address: %s, err: %s", gs.address, err.Error())
 	}
 	go func() {
-		err = gas.Serve(listen)
+		err = gs.Serve(listen)
 		if err != nil {
 			log.Fatal("failed to serve grpc, err: %s", err.Error())
 		}
